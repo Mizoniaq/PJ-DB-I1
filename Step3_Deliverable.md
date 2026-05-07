@@ -40,7 +40,7 @@
 | `exhibition_artwork` | 13 | Cross-participations: artworks 3 and 7 appear in 2 expos |
 | `artwork_artwork_tag` | 22 | Most artworks have 1-2 tags |
 
-**Script:** [`artconnect_data.sql`](file:///c:/Users/Noah/Documents/VSCODE/SQL/PJ-DB-I1/artconnect_data.sql)
+**Script:** [`artconnect_data.sql`]
 
 ---
 
@@ -134,7 +134,7 @@ WHERE status = 'FOR_SALE'
 ORDER BY avg_rating DESC;
 ```
 
-**Script:** [`artconnect_views_indexes.sql`](file:///c:/Users/Noah/Documents/VSCODE/SQL/PJ-DB-I1/artconnect_views_indexes.sql)
+**Script:** [`artconnect_views_indexes.sql`]
 
 ---
 
@@ -149,8 +149,7 @@ ORDER BY avg_rating DESC;
 | 5 | `idx_booking_workshop` | `booking(workshop_id)` | Accelerates counting bookings per workshop (used in `v_workshop_availability` and the capacity-check trigger). |
 | 6 | `idx_workshop_date` | `workshop(date)` | Workshops are frequently sorted and filtered by date (upcoming workshops, past workshops). Supports efficient `ORDER BY` and range scans. |
 
-**Script:** [`artconnect_views_indexes.sql`](file:///c:/Users/Noah/Documents/VSCODE/SQL/PJ-DB-I1/artconnect_views_indexes.sql)
-
+**Script:** [`artconnect_views_indexes.sql`]
 ---
 
 ## 4. Triggers
@@ -232,7 +231,7 @@ SELECT status FROM artwork WHERE artwork_id = 5;
 -- Should be 'EXHIBITED' if exhibition 4 is currently running
 ```
 
-**Script:** [`artconnect_triggers.sql`](file:///c:/Users/Noah/Documents/VSCODE/SQL/PJ-DB-I1/artconnect_triggers.sql)
+**Script:** [`artconnect_triggers.sql`]
 
 ---
 
@@ -313,7 +312,7 @@ CALL sp_generate_artist_report(1);
 -- Result set 4: Workshops she instructs with available spots
 ```
 
-**Script:** [`artconnect_procedures.sql`](file:///c:/Users/Noah/Documents/VSCODE/SQL/PJ-DB-I1/artconnect_procedures.sql)
+**Script:** [`artconnect_procedures.sql`]
 
 ---
 
@@ -341,7 +340,7 @@ CALL sp_generate_artist_report(1);
 
 **Result:** The trigger fires → the handler catches the error → `ROLLBACK`. Marc does not exist in the database.
 
-**Script:** [`artconnect_transactions.sql`](file:///c:/Users/Noah/Documents/VSCODE/SQL/PJ-DB-I1/artconnect_transactions.sql)
+**Script:** [`artconnect_transactions.sql`]
 
 ---
 

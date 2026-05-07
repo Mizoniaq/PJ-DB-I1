@@ -48,7 +48,7 @@ SELECT
     e.exhibition_id,
     e.title                 AS exhibition_title,
     g.name                  AS gallery_name,
-    g.city                  AS gallery_city,
+    g.address               AS gallery_address,
     e.start_date,
     e.end_date,
     DATEDIFF(e.end_date, e.start_date) AS duration_days,
@@ -58,7 +58,7 @@ SELECT
 FROM exhibition e
 JOIN gallery g             ON e.gallery_id = g.gallery_id
 LEFT JOIN exhibition_artwork ea ON e.exhibition_id = ea.exhibition_id
-GROUP BY e.exhibition_id, e.title, g.name, g.city,
+GROUP BY e.exhibition_id, e.title, g.name, g.address,
          e.start_date, e.end_date, e.curator_name, e.theme;
 
 -- -------------------------------------------------------------
