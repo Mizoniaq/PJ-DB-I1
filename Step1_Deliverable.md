@@ -1,4 +1,4 @@
-# Step 1 — Understanding ArtConnect & Defining the Functional Scope
+# Step 1 - Understanding ArtConnect & Defining the Functional Scope
 
 ## 1. Main Application Features
 

@@ -1,4 +1,4 @@
-# Step 3 — Database Implementation and Advanced Features
+# Step 3 - Database Implementation and Advanced Features
 
 ## 1. Sample Data Insertion
 

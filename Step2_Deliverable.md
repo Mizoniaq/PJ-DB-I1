@@ -1,4 +1,4 @@
-# Step 2 — Conceptual and Logical Modeling of the ArtConnect Database
+# Step 2 - Conceptual and Logical Modeling of the ArtConnect Database
 
 ## 1. Identified Entities and Attributes
 
