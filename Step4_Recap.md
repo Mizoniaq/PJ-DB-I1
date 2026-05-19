@@ -1,74 +1,78 @@
-# Récapitulatif Détaillé - Step 4 (Intégration JDBC)
+# Detailed Recap — Step 4 (JDBC Integration)
 
-Ce document résume l'ensemble des modifications apportées au projet **ArtConnect Pro** afin de remplacer le stockage en mémoire (InMemory) par une persistance réelle via la base de données MySQL `artconnect`, conformément aux exigences du **Step 4**.
-
----
-
-## 1. Couche de Connexion (Database Layer) & Sécurité
-
-*   **Configuration Externalisée (`database.properties`)** :
-    *   Création d'un fichier `src/main/resources/database.properties` contenant les identifiants réels (`db.user`, `db.password`, `db.url`).
-    *   Création d'un fichier `database.properties.example` comme modèle pour les autres développeurs.
-    *   Création d'un fichier `.gitignore` à la racine pour ignorer `database.properties` et s'assurer que le mot de passe ne soit jamais publié publiquement (ex: sur GitHub).
-*   **`DatabaseConfig.java`** : 
-    *   Refactorisation pour charger dynamiquement les identifiants depuis `database.properties` au lieu de les coder en dur (hardcoding), sécurisant ainsi l'application.
-*   **`ConnectionManager.java`** : 
-    *   Implémentation de la méthode `getConnection()` utilisant `DriverManager.getConnection()` avec les variables chargées par `DatabaseConfig`.
+This document summarizes all changes made to the **ArtConnect Pro** project to replace in-memory storage (InMemory) with real persistence via the MySQL `artconnect` database, in accordance with the **Step 4** requirements.
 
 ---
 
-## 2. Couche de Persistance (DAO JDBC)
+## 1. Connection Layer (Database Layer) & Security
 
-Six nouvelles classes implémentant les interfaces DAO ont été créées dans le package `com.project.artconnect.persistence`. 
-*Toutes utilisent `PreparedStatement` pour la sécurité contre les injections SQL et `try-with-resources` pour la gestion propre des connexions.*
-
-*   **`JdbcArtistDao.java`** :
-    *   Implémentation complète du CRUD (`findAll`, `findByCity`, `save`, `update`, `delete`).
-    *   **Particularité** : Gestion des transactions (`conn.setAutoCommit(false)`) pour le `save` et `update` afin de garantir que l'insertion de l'artiste et l'insertion de ses liens dans la table de jonction `artist_discipline` se fassent de manière atomique.
-*   **`JdbcArtworkDao.java`** :
-    *   Implémentation complète du CRUD.
-    *   **Particularité** : Utilisation d'une jointure (`JOIN artist`) lors du `findAll()` pour reconstituer l'objet `Artist` parent et l'attacher à l'objet `Artwork` en Java.
-*   **`JdbcExhibitionDao.java`** :
-    *   **Particularité** : Récupère les informations de la galerie (`JOIN gallery`) et charge la liste des œuvres associées à l'exposition via la table de jonction `exhibition_artwork`.
-*   **`JdbcGalleryDao.java`** :
-    *   **Particularité** : Charge automatiquement les expositions (`Exhibition`) qui ont lieu dans chaque galerie.
-*   **`JdbcWorkshopDao.java`** :
-    *   **Particularité** : Jointure avec la table `artist` pour reconstituer l'objet `Artist` (qui joue le rôle d'instructeur) lors de la récupération des ateliers.
-*   **`JdbcCommunityMemberDao.java`** :
-    *   **Particularité** : Chargement complexe en cascade. Pour chaque membre, le DAO récupère également ses réservations (`Booking`) et ses avis (`Review`).
+*   **Externalized Configuration (`database.properties`)**:
+    *   Created `src/main/resources/database.properties` containing the real credentials (`db.user`, `db.password`, `db.url`).
+    *   Created `database.properties.example` as a template for other developers.
+    *   Created a `.gitignore` file at the project root to ignore `database.properties` and ensure the password is never published publicly (e.g., on GitHub).
+*   **`DatabaseConfig.java`**:
+    *   Refactored to dynamically load credentials from `database.properties` instead of hardcoding them, securing the application.
+*   **`ConnectionManager.java`**:
+    *   Updated to use a **HikariCP connection pool** (max 10 connections, min 2 idle) instead of opening a raw `DriverManager` connection on every call.
 
 ---
 
-## 3. Couche Service (JDBC Services)
+## 2. Persistence Layer (JDBC DAOs)
 
-Cinq nouvelles classes implémentant les interfaces de services ont été créées dans le package `com.project.artconnect.service.impl` pour relier l'UI aux nouveaux DAOs JDBC.
+Six new classes implementing the DAO interfaces were created in the package `com.project.artconnect.persistence`.
+*All use `PreparedStatement` for SQL injection prevention and `try-with-resources` for safe connection handling.*
 
-*   **`JdbcArtistService.java`** : Délègue à `JdbcArtistDao`. Gère également la méthode `getAllDisciplines()` via une requête SQL directe, et filtre en Java les résultats pour la recherche.
-    *   *Correction de Bug* : Ajout d'une sécurité contre les `NullPointerException` (vérification `a.getCity() != null`) lors du filtrage croisé par discipline/ville/nom, pour les artistes n'ayant pas de ville renseignée en base.
-*   **`JdbcArtworkService.java`** : Délègue à `JdbcArtworkDao`.
-*   **`JdbcGalleryService.java`** : Délègue à `JdbcGalleryDao`.
-*   **`JdbcWorkshopService.java`** : Délègue à `JdbcWorkshopDao` et gère la logique de réservation (`bookWorkshop`) en insérant directement dans la table de jonction `booking`.
-*   **`JdbcCommunityService.java`** : Délègue à `JdbcCommunityMemberDao`.
-
----
-
-## 4. Injection des Dépendances (Wiring)
-
-*   **`ServiceProvider.java`** :
-    *   Le système de distribution des singletons a été modifié (Hard-Switch). 
-    *   Toutes les instances retournées sont désormais les implémentations JDBC (`JdbcArtistService`, etc.) construites en leur passant les `JdbcXxxDao`.
-    *   *Note* : Les classes `InMemory` ont été conservées dans le projet (non appelées) à des fins de tests ou de référence, conformément aux consignes du projet. La méthode `initData()` n'est plus appelée puisque les données viennent de MySQL.
-
----
-
-## 5. Fichier de Configuration Maven (`pom.xml`)
-
-Pour corriger un bug majeur de crash sur macOS (`NSInternalInconsistencyException` / `NSTrackingRectTag`) survenant lors du lancement de l'interface graphique :
-*   **JavaFX Version** : Mise à jour de `<javafx.version>` de `17.0.2` vers `23.0.1`.
-*   **Compiler Target** : Mise à jour de `<maven.compiler.source>` et `<target>` de `17` vers `23` pour correspondre à ton environnement local.
-*   **Maven Compiler Plugin** : Mise à jour de `<release>` de `17` vers `23`.
+*   **`JdbcArtistDao.java`**:
+    *   Full CRUD implementation (`findAll`, `findByCity`, `save`, `update`, `delete`).
+    *   **Key feature**: Transaction management (`conn.setAutoCommit(false)`) in `save` and `update` to atomically insert the artist row and its linked rows in the `artist_discipline` junction table.
+*   **`JdbcArtworkDao.java`**:
+    *   Full CRUD implementation.
+    *   **Key feature**: Uses a JOIN (`JOIN artist`) in `findAll()` to reconstruct the parent `Artist` object and attach it to the `Artwork` object in Java.
+*   **`JdbcExhibitionDao.java`**:
+    *   **Key feature**: Fetches gallery info (`JOIN gallery`) and loads the list of artworks linked to the exhibition via the `exhibition_artwork` junction table.
+*   **`JdbcGalleryDao.java`**:
+    *   Full CRUD implementation (`findById`, `findAll`, `save`, `update`, `delete`).
+    *   **Key feature**: Automatically loads the `Exhibition` objects hosted by each gallery.
+*   **`JdbcWorkshopDao.java`**:
+    *   Full CRUD implementation (`findById`, `findAll`, `save`, `update`, `delete`).
+    *   **Key feature**: JOINs the `artist` table to reconstruct the `Artist` object acting as instructor when loading workshops.
+*   **`JdbcCommunityMemberDao.java`**:
+    *   Full CRUD implementation (`findById`, `findAll`, `save`, `update`, `delete`).
+    *   **Key feature**: Complex cascade loading. For each member, the DAO also fetches their bookings (`Booking`) and reviews (`Review`). Save/update are transactional to handle the `member_favorite_discipline` junction table atomically.
 
 ---
 
-## État Final
-L'application compile avec succès (`mvn clean compile`) et s'exécute (`mvn javafx:run`). L'interface graphique affiche en temps réel les données issues du serveur MySQL local et toutes les opérations de persistance sont opérationnelles, clôturant ainsi le Step 4.
+## 3. Service Layer (JDBC Services)
+
+Five new classes implementing the service interfaces were created in the package `com.project.artconnect.service.impl` to connect the UI to the new JDBC DAOs.
+
+*   **`JdbcArtistService.java`**: Delegates to `JdbcArtistDao`. Also handles `getAllDisciplines()` via a direct SQL query, and filters results in Java for the search feature.
+    *   *Bug fix*: Added a null safety check (`a.getCity() != null`) when cross-filtering by discipline/city/name, for artists with no city stored in the database.
+*   **`JdbcArtworkService.java`**: Delegates to `JdbcArtworkDao`.
+*   **`JdbcGalleryService.java`**: Delegates to `JdbcGalleryDao`.
+*   **`JdbcWorkshopService.java`**: Delegates to `JdbcWorkshopDao` and handles booking logic (`bookWorkshop`) by inserting directly into the `booking` junction table.
+*   **`JdbcCommunityService.java`**: Delegates to `JdbcCommunityMemberDao`.
+
+---
+
+## 4. Dependency Injection (Wiring)
+
+*   **`ServiceProvider.java`**:
+    *   The singleton factory was updated (hard-switch).
+    *   All returned instances are now the JDBC implementations (`JdbcArtistService`, etc.) constructed by passing the corresponding `JdbcXxxDao` instances.
+    *   *Note*: The `InMemory` classes were kept in the project (unused) for testing or reference purposes, as per the project guidelines. The `initData()` method is no longer called since data now comes from MySQL.
+
+---
+
+## 5. Maven Configuration (`pom.xml`)
+
+*   **JavaFX Version**: Updated `<javafx.version>` from `17.0.2` to `23.0.1`.
+*   **Compiler Target**: Updated `<maven.compiler.source>` and `<target>` from `17` to `23` to match the local environment.
+*   **Maven Compiler Plugin**: Updated `<release>` from `17` to `23`.
+*   **HikariCP**: Added `com.zaxxer:HikariCP:5.1.0` dependency for connection pooling.
+
+---
+
+## Final State
+
+The application compiles successfully (`mvn clean compile`) and runs (`mvn javafx:run`). The graphical interface displays live data from the local MySQL server and all persistence operations are functional, completing Step 4.

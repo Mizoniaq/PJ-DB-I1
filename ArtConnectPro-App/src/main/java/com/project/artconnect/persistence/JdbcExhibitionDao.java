@@ -69,8 +69,8 @@ public class JdbcExhibitionDao implements ExhibitionDao {
                 int exhibitionId;
                 try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                     ps.setString(1, exhibition.getTitle());
-                    ps.setDate(2, Date.valueOf(exhibition.getStartDate()));
-                    ps.setDate(3, Date.valueOf(exhibition.getEndDate()));
+                    ps.setDate(2, exhibition.getStartDate() != null ? Date.valueOf(exhibition.getStartDate()) : null);
+                    ps.setDate(3, exhibition.getEndDate() != null ? Date.valueOf(exhibition.getEndDate()) : null);
                     ps.setString(4, exhibition.getDescription());
                     ps.setString(5, exhibition.getCuratorName());
                     ps.setString(6, exhibition.getTheme());
@@ -126,8 +126,8 @@ public class JdbcExhibitionDao implements ExhibitionDao {
         try (Connection conn = ConnectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setDate(1, Date.valueOf(exhibition.getStartDate()));
-            ps.setDate(2, Date.valueOf(exhibition.getEndDate()));
+            ps.setDate(1, exhibition.getStartDate() != null ? Date.valueOf(exhibition.getStartDate()) : null);
+            ps.setDate(2, exhibition.getEndDate() != null ? Date.valueOf(exhibition.getEndDate()) : null);
             ps.setString(3, exhibition.getDescription());
             ps.setString(4, exhibition.getCuratorName());
             ps.setString(5, exhibition.getTheme());

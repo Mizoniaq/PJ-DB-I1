@@ -14,7 +14,7 @@ import java.util.Optional;
 
 /**
  * JDBC implementation for GalleryDao.
- * Also loads associated exhibitions.
+ * Full CRUD. Also loads associated exhibitions.
  */
 public class JdbcGalleryDao implements GalleryDao {
 
@@ -67,6 +67,71 @@ public class JdbcGalleryDao implements GalleryDao {
         loadExhibitionsForGalleries(galleryMap);
 
         return new ArrayList<>(galleryMap.values());
+    }
+
+    // ---------------------------------------------------------------
+    // CREATE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void save(Gallery gallery) {
+        String sql = "INSERT INTO gallery (name, address, owner_name, opening_hours, "
+                + "contact_phone, rating, website) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = ConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, gallery.getName());
+            ps.setString(2, gallery.getAddress());
+            ps.setString(3, gallery.getOwnerName());
+            ps.setString(4, gallery.getOpeningHours());
+            ps.setString(5, gallery.getContactPhone());
+            ps.setDouble(6, gallery.getRating());
+            ps.setString(7, gallery.getWebsite());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error saving gallery", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // UPDATE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void update(Gallery gallery) {
+        String sql = "UPDATE gallery SET address = ?, owner_name = ?, opening_hours = ?, "
+                + "contact_phone = ?, rating = ?, website = ? WHERE name = ?";
+
+        try (Connection conn = ConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, gallery.getAddress());
+            ps.setString(2, gallery.getOwnerName());
+            ps.setString(3, gallery.getOpeningHours());
+            ps.setString(4, gallery.getContactPhone());
+            ps.setDouble(5, gallery.getRating());
+            ps.setString(6, gallery.getWebsite());
+            ps.setString(7, gallery.getName());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating gallery", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void delete(String name) {
+        String sql = "DELETE FROM gallery WHERE name = ?";
+
+        try (Connection conn = ConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting gallery", e);
+        }
     }
 
     // ---------------------------------------------------------------

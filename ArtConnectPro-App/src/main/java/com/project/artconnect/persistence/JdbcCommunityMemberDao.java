@@ -69,8 +69,135 @@ public class JdbcCommunityMemberDao implements CommunityMemberDao {
     }
 
     // ---------------------------------------------------------------
+    // CREATE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void save(CommunityMember member) {
+        String sql = "INSERT INTO community_member (name, email, birth_year, phone, city, membership_type) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = ConnectionManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int memberId;
+                try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, member.getName());
+                    ps.setString(2, member.getEmail());
+                    ps.setObject(3, member.getBirthYear(), Types.INTEGER);
+                    ps.setString(4, member.getPhone());
+                    ps.setString(5, member.getCity());
+                    ps.setString(6, member.getMembershipType());
+                    ps.executeUpdate();
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (keys.next()) {
+                            memberId = keys.getInt(1);
+                        } else {
+                            throw new SQLException("Failed to get generated member_id");
+                        }
+                    }
+                }
+                insertFavoriteDisciplines(conn, memberId, member);
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error saving community member", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // UPDATE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void update(CommunityMember member) {
+        String sql = "UPDATE community_member SET name = ?, birth_year = ?, phone = ?, "
+                + "city = ?, membership_type = ? WHERE email = ?";
+
+        try (Connection conn = ConnectionManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, member.getName());
+                    ps.setObject(2, member.getBirthYear(), Types.INTEGER);
+                    ps.setString(3, member.getPhone());
+                    ps.setString(4, member.getCity());
+                    ps.setString(5, member.getMembershipType());
+                    ps.setString(6, member.getEmail());
+                    ps.executeUpdate();
+                }
+                int memberId = findMemberIdByEmail(conn, member.getEmail());
+                try (PreparedStatement del = conn.prepareStatement(
+                        "DELETE FROM member_favorite_discipline WHERE member_id = ?")) {
+                    del.setInt(1, memberId);
+                    del.executeUpdate();
+                }
+                insertFavoriteDisciplines(conn, memberId, member);
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating community member", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void delete(String email) {
+        String sql = "DELETE FROM community_member WHERE email = ?";
+
+        try (Connection conn = ConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting community member", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
     // HELPERS
     // ---------------------------------------------------------------
+
+    private int findMemberIdByEmail(Connection conn, String email) throws SQLException {
+        String sql = "SELECT member_id FROM community_member WHERE email = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("member_id");
+            }
+        }
+        throw new SQLException("Community member not found with email: " + email);
+    }
+
+    private void insertFavoriteDisciplines(Connection conn, int memberId, CommunityMember member)
+            throws SQLException {
+        if (member.getFavoriteDisciplines() == null || member.getFavoriteDisciplines().isEmpty()) return;
+
+        String sql = "INSERT INTO member_favorite_discipline (member_id, discipline_id) "
+                + "SELECT ?, discipline_id FROM discipline WHERE name = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (Discipline d : member.getFavoriteDisciplines()) {
+                ps.setInt(1, memberId);
+                ps.setString(2, d.getName());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
 
     private CommunityMember mapRow(ResultSet rs) throws SQLException {
         CommunityMember m = new CommunityMember();

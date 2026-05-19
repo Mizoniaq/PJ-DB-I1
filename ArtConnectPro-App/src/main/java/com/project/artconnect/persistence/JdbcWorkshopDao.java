@@ -69,8 +69,116 @@ public class JdbcWorkshopDao implements WorkshopDao {
     }
 
     // ---------------------------------------------------------------
+    // CREATE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void save(Workshop workshop) {
+        String sql = "INSERT INTO workshop (title, date, duration_minutes, max_participants, "
+                + "price, instructor_id, location, description, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        if (workshop.getInstructor() == null || workshop.getInstructor().getContactEmail() == null) {
+            throw new IllegalArgumentException("Workshop must have an instructor with a valid email");
+        }
+        try (Connection conn = ConnectionManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int instructorId = findArtistIdByEmail(conn, workshop.getInstructor().getContactEmail());
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, workshop.getTitle());
+                    ps.setTimestamp(2, workshop.getDate() != null ? Timestamp.valueOf(workshop.getDate()) : null);
+                    ps.setInt(3, workshop.getDurationMinutes());
+                    ps.setInt(4, workshop.getMaxParticipants());
+                    ps.setDouble(5, workshop.getPrice());
+                    ps.setInt(6, instructorId);
+                    ps.setString(7, workshop.getLocation());
+                    ps.setString(8, workshop.getDescription());
+                    ps.setString(9, workshop.getLevel());
+                    ps.executeUpdate();
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error saving workshop", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // UPDATE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void update(Workshop workshop) {
+        String sql = "UPDATE workshop SET date = ?, duration_minutes = ?, max_participants = ?, "
+                + "price = ?, instructor_id = ?, location = ?, description = ?, level = ? WHERE title = ?";
+
+        if (workshop.getInstructor() == null || workshop.getInstructor().getContactEmail() == null) {
+            throw new IllegalArgumentException("Workshop must have an instructor with a valid email");
+        }
+        try (Connection conn = ConnectionManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int instructorId = findArtistIdByEmail(conn, workshop.getInstructor().getContactEmail());
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setTimestamp(1, workshop.getDate() != null ? Timestamp.valueOf(workshop.getDate()) : null);
+                    ps.setInt(2, workshop.getDurationMinutes());
+                    ps.setInt(3, workshop.getMaxParticipants());
+                    ps.setDouble(4, workshop.getPrice());
+                    ps.setInt(5, instructorId);
+                    ps.setString(6, workshop.getLocation());
+                    ps.setString(7, workshop.getDescription());
+                    ps.setString(8, workshop.getLevel());
+                    ps.setString(9, workshop.getTitle());
+                    ps.executeUpdate();
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating workshop", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------------
+
+    @Override
+    public void delete(String title) {
+        String sql = "DELETE FROM workshop WHERE title = ?";
+
+        try (Connection conn = ConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, title);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting workshop", e);
+        }
+    }
+
+    // ---------------------------------------------------------------
     // HELPERS
     // ---------------------------------------------------------------
+
+    private int findArtistIdByEmail(Connection conn, String email) throws SQLException {
+        String sql = "SELECT artist_id FROM artist WHERE contact_email = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("artist_id");
+            }
+        }
+        throw new SQLException("Artist not found with email: " + email);
+    }
 
     private Workshop mapRow(ResultSet rs) throws SQLException {
         Artist instructor = new Artist();
