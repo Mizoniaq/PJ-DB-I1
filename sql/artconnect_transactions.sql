@@ -9,6 +9,8 @@
 
 USE artconnect;
 
+DROP PROCEDURE IF EXISTS sp_demo_atomic_registration;
+
 -- =============================================================
 -- SCENARIO 1: Successful registration of a new premium member
 -- =============================================================

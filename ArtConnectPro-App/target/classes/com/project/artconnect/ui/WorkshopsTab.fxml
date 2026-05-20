@@ -15,6 +15,12 @@
             <TableColumn fx:id="dateColumn" text="Date" prefWidth="150" />
             <TableColumn fx:id="priceColumn" text="Price" prefWidth="80" />
             <TableColumn fx:id="levelColumn" text="Level" prefWidth="100" />
+            <TableColumn fx:id="spotsColumn" text="Available Spots" prefWidth="120" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="Book Selected Workshop" onAction="#handleBook" style="-fx-background-color: #2e7d32; -fx-text-fill: white;" />
+        <Button text="Cancel Booking" onAction="#handleCancel" style="-fx-background-color: #c62828; -fx-text-fill: white;" />
+        <Label fx:id="bookingStatusLabel" text="" />
+    </HBox>
 </VBox>

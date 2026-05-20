@@ -17,4 +17,11 @@
             <TableColumn fx:id="statusColumn" text="Status" prefWidth="150" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="Add Artwork" onAction="#handleAdd" style="-fx-background-color: #1565c0; -fx-text-fill: white;" />
+        <Button text="Mark as Sold" onAction="#handleMarkSold" style="-fx-background-color: #2e7d32; -fx-text-fill: white;" />
+        <Button text="Mark as For Sale" onAction="#handleMarkForSale" style="-fx-background-color: #e65100; -fx-text-fill: white;" />
+        <Button text="Delete Selected" onAction="#handleDelete" style="-fx-background-color: #c62828; -fx-text-fill: white;" />
+        <Label fx:id="artworkStatusLabel" text="" />
+    </HBox>
 </VBox>

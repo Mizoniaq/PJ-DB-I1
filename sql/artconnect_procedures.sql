@@ -8,6 +8,13 @@
 
 USE artconnect;
 
+-- Drop procedures/functions if they exist (safe re-run)
+DROP FUNCTION  IF EXISTS fn_get_workshop_available_spots;
+DROP FUNCTION  IF EXISTS fn_get_artist_average_rating;
+DROP PROCEDURE IF EXISTS sp_create_workshop_with_artist;
+DROP PROCEDURE IF EXISTS sp_register_member_to_workshops;
+DROP PROCEDURE IF EXISTS sp_generate_artist_report;
+
 -- =============================================================
 -- FUNCTION 1: fn_get_workshop_available_spots
 -- Returns the number of remaining spots for a given workshop.

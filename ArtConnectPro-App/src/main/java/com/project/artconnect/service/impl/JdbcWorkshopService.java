@@ -58,6 +58,24 @@ public class JdbcWorkshopService implements WorkshopService {
     }
 
     @Override
+    public void cancelBooking(Workshop workshop, CommunityMember member) {
+        if (workshop == null || member == null) return;
+
+        String sql = "DELETE FROM booking WHERE "
+                + "workshop_id = (SELECT workshop_id FROM workshop WHERE title = ? LIMIT 1) "
+                + "AND member_id = (SELECT member_id FROM community_member WHERE name = ? LIMIT 1)";
+
+        try (Connection conn = ConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, workshop.getTitle());
+            ps.setString(2, member.getName());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error cancelling booking", e);
+        }
+    }
+
+    @Override
     public List<Booking> getBookingsByMember(CommunityMember member) {
         if (member == null) return Collections.emptyList();
 

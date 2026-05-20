@@ -7,6 +7,12 @@
 
 USE artconnect;
 
+-- Drop triggers if they exist (safe re-run)
+DROP TRIGGER IF EXISTS trg_check_workshop_capacity;
+DROP TRIGGER IF EXISTS trg_check_exhibition_date_consistency;
+DROP TRIGGER IF EXISTS trg_audit_artwork_status;
+DROP TRIGGER IF EXISTS trg_set_artwork_exhibited;
+
 -- =============================================================
 -- AUDIT LOG TABLE (required by trigger 3)
 -- =============================================================

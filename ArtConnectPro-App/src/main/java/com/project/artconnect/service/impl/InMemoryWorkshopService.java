@@ -55,6 +55,12 @@ public class InMemoryWorkshopService implements WorkshopService {
     }
 
     @Override
+    public void cancelBooking(Workshop workshop, CommunityMember member) {
+        if (workshop == null || member == null) return;
+        member.getBookings().removeIf(b -> b.getWorkshop().equals(workshop));
+    }
+
+    @Override
     public List<Booking> getBookingsByMember(CommunityMember member) {
         if (member == null)
             return Collections.emptyList();

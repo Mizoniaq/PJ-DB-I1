@@ -22,4 +22,10 @@
             <TableColumn fx:id="yearColumn" text="Birth Year" prefWidth="100" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="Add Artist" onAction="#handleAdd" style="-fx-background-color: #1565c0; -fx-text-fill: white;" />
+        <Button text="Edit Selected" onAction="#handleEdit" style="-fx-background-color: #e65100; -fx-text-fill: white;" />
+        <Button text="Delete Selected" onAction="#handleDelete" style="-fx-background-color: #c62828; -fx-text-fill: white;" />
+        <Label fx:id="artistStatusLabel" text="" />
+    </HBox>
 </VBox>

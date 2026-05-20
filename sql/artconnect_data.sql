@@ -331,6 +331,86 @@ INSERT INTO booking (workshop_id, member_id, booking_date, payment_status) VALUE
     (4, 8, '2025-05-05 10:00:00', 'CANCELLED');
 
 -- =============================================================
+-- ADDITIONAL ARTISTS (7–11) + ARTWORKS (16–20)
+-- =============================================================
+
+INSERT INTO artist (name, bio, birth_year, contact_email, phone, city, website, social_media, is_active) VALUES
+    ('Isabela Carvalho',
+     'Brazilian street artist turned gallery painter, celebrated for her large-format murals and vibrant tropical palettes.',
+     1994, 'isabela.carvalho@artmail.com', '+55 11 9 1234 5678', 'São Paulo',
+     'https://isabelacarvalho.art', '@isabela_paints', TRUE),
+
+    ('Kwame Asante',
+     'Ghanaian sculptor working primarily in reclaimed wood and metal, exploring post-colonial narratives.',
+     1980, 'kwame.asante@artmail.com', '+233 24 123 4567', 'Accra',
+     NULL, '@kwame_sculpts', TRUE),
+
+    ('Nora Lindgren',
+     'Swedish digital illustrator and concept artist, known for ethereal dreamscapes merging Nordic folklore with surrealism.',
+     1996, 'nora.lindgren@artmail.com', '+46 73 234 56 78', 'Gothenburg',
+     'https://noralindgren.se', '@nora_dreamer', TRUE),
+
+    ('Rafael Torres',
+     'Spanish photographer specializing in documentary portraiture, capturing the faces of disappearing rural communities.',
+     1973, 'rafael.torres@artmail.com', '+34 93 345 6789', 'Barcelona',
+     'https://rafaeltorres.es', '@rafael_lens', TRUE),
+
+    ('Mei Lin',
+     'Chinese ink and watercolour artist bridging classical Shan shui landscape tradition with contemporary abstraction.',
+     1988, 'mei.lin@artmail.com', '+86 21 1234 5678', 'Shanghai',
+     'https://meilinart.cn', '@meilin_ink', TRUE);
+
+-- Disciplines (resolved by name — safe regardless of auto_increment state)
+INSERT INTO artist_discipline (artist_id, discipline_id)
+SELECT a.artist_id, d.discipline_id FROM artist a, discipline d
+WHERE a.name = 'Isabela Carvalho' AND d.name = 'Painting';
+INSERT INTO artist_discipline (artist_id, discipline_id)
+SELECT a.artist_id, d.discipline_id FROM artist a, discipline d
+WHERE a.name = 'Isabela Carvalho' AND d.name = 'Mixed Media';
+
+INSERT INTO artist_discipline (artist_id, discipline_id)
+SELECT a.artist_id, d.discipline_id FROM artist a, discipline d
+WHERE a.name = 'Kwame Asante' AND d.name = 'Sculpture';
+
+INSERT INTO artist_discipline (artist_id, discipline_id)
+SELECT a.artist_id, d.discipline_id FROM artist a, discipline d
+WHERE a.name = 'Nora Lindgren' AND d.name = 'Digital Art';
+
+INSERT INTO artist_discipline (artist_id, discipline_id)
+SELECT a.artist_id, d.discipline_id FROM artist a, discipline d
+WHERE a.name = 'Rafael Torres' AND d.name = 'Photography';
+
+INSERT INTO artist_discipline (artist_id, discipline_id)
+SELECT a.artist_id, d.discipline_id FROM artist a, discipline d
+WHERE a.name = 'Mei Lin' AND d.name = 'Painting';
+
+-- Artworks (one each, status EXHIBITED — artist resolved by name)
+INSERT INTO artwork (title, creation_year, type, medium, dimensions, description, price, status, artist_id)
+SELECT 'Carnival of Colours', 2024, 'Painting', 'Acrylic on canvas', '150x120 cm',
+       'An explosion of tropical colour inspired by the São Paulo Carnival, layered with geometric street patterns.',
+       5200.00, 'EXHIBITED', artist_id FROM artist WHERE name = 'Isabela Carvalho';
+
+INSERT INTO artwork (title, creation_year, type, medium, dimensions, description, price, status, artist_id)
+SELECT 'Ancestors Speak', 2023, 'Sculpture', 'Reclaimed iroko wood and copper wire', '110x40x40 cm',
+       'A totemic figure assembled from salvaged timber, honouring the spirits of Ghanaian oral tradition.',
+       9800.00, 'EXHIBITED', artist_id FROM artist WHERE name = 'Kwame Asante';
+
+INSERT INTO artwork (title, creation_year, type, medium, dimensions, description, price, status, artist_id)
+SELECT 'The Dreaming Forest', 2025, 'Digital Art', 'Digital print on fine art paper', '80x120 cm',
+       'A luminous digital landscape where ancient Nordic pines dissolve into swirling aurora borealis clouds.',
+       1600.00, 'EXHIBITED', artist_id FROM artist WHERE name = 'Nora Lindgren';
+
+INSERT INTO artwork (title, creation_year, type, medium, dimensions, description, price, status, artist_id)
+SELECT 'The Last Shepherd', 2022, 'Photography', 'Archival pigment print', '60x90 cm',
+       'A stark black-and-white portrait of an elderly shepherd in the Aragonese highlands, the last of his village.',
+       2300.00, 'EXHIBITED', artist_id FROM artist WHERE name = 'Rafael Torres';
+
+INSERT INTO artwork (title, creation_year, type, medium, dimensions, description, price, status, artist_id)
+SELECT 'Mountain Mist at Dawn', 2024, 'Painting', 'Ink and watercolour on xuan paper', '70x140 cm',
+       'A contemporary Shan shui scroll in which misty peaks emerge from washes of indigo and raw umber.',
+       4100.00, 'EXHIBITED', artist_id FROM artist WHERE name = 'Mei Lin';
+
+-- =============================================================
 -- 13. REVIEWS (10) — various ratings
 -- =============================================================
 

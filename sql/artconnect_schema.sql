@@ -3,7 +3,8 @@
 -- Step 2 — Conceptual & Logical Modeling
 -- Normalized to 3rd Normal Form (3NF)
 -- =============================================================
-CREATE DATABASE IF NOT EXISTS artconnect CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+DROP DATABASE IF EXISTS artconnect;
+CREATE DATABASE artconnect CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE artconnect;
 -- =============================================================
 -- LOOKUP TABLES (no dependencies)
