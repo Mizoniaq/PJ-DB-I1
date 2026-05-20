@@ -7,6 +7,7 @@ import java.util.List;
  * Artist entity representing a creator in the community.
  */
 public class Artist {
+    private int artistId;
     private String name;
     private String bio;
     private Integer birthYear;
@@ -32,6 +33,14 @@ public class Artist {
     }
 
     // Getters and Setters
+    public int getArtistId() {
+        return artistId;
+    }
+
+    public void setArtistId(int artistId) {
+        this.artistId = artistId;
+    }
+
     public String getName() {
         return name;
     }

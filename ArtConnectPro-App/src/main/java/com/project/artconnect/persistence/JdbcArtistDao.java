@@ -102,6 +102,7 @@ public class JdbcArtistDao implements ArtistDao {
                     try (ResultSet keys = ps.getGeneratedKeys()) {
                         if (keys.next()) {
                             artistId = keys.getInt(1);
+                            artist.setArtistId(artistId);
                         } else {
                             throw new SQLException("Failed to get generated artist_id");
                         }
@@ -129,29 +130,29 @@ public class JdbcArtistDao implements ArtistDao {
 
     @Override
     public void update(Artist artist) {
-        String updateSql = "UPDATE artist SET bio = ?, birth_year = ?, contact_email = ?, "
+        String updateSql = "UPDATE artist SET name = ?, bio = ?, birth_year = ?, contact_email = ?, "
                 + "phone = ?, city = ?, website = ?, social_media = ?, is_active = ? "
-                + "WHERE name = ?";
+                + "WHERE artist_id = ?";
 
         try (Connection conn = ConnectionManager.getConnection()) {
             conn.setAutoCommit(false);
             try {
                 // Update artist row
                 try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-                    ps.setString(1, artist.getBio());
-                    ps.setObject(2, artist.getBirthYear(), Types.INTEGER);
-                    ps.setString(3, artist.getContactEmail());
-                    ps.setString(4, artist.getPhone());
-                    ps.setString(5, artist.getCity());
-                    ps.setString(6, artist.getWebsite());
-                    ps.setString(7, artist.getSocialMedia());
-                    ps.setBoolean(8, artist.isActive());
-                    ps.setString(9, artist.getName());
+                    ps.setString(1, artist.getName());
+                    ps.setString(2, artist.getBio());
+                    ps.setObject(3, artist.getBirthYear(), Types.INTEGER);
+                    ps.setString(4, artist.getContactEmail());
+                    ps.setString(5, artist.getPhone());
+                    ps.setString(6, artist.getCity());
+                    ps.setString(7, artist.getWebsite());
+                    ps.setString(8, artist.getSocialMedia());
+                    ps.setBoolean(9, artist.isActive());
+                    ps.setInt(10, artist.getArtistId());
                     ps.executeUpdate();
                 }
 
-                // Resolve artist_id for discipline update
-                int artistId = findArtistIdByName(conn, artist.getName());
+                int artistId = artist.getArtistId();
 
                 // Delete old disciplines, insert new ones
                 try (PreparedStatement del = conn.prepareStatement(
@@ -199,6 +200,7 @@ public class JdbcArtistDao implements ArtistDao {
      */
     private Artist mapRow(ResultSet rs) throws SQLException {
         Artist a = new Artist();
+        a.setArtistId(rs.getInt("artist_id"));
         a.setName(rs.getString("name"));
         a.setBio(rs.getString("bio"));
         a.setBirthYear(rs.getObject("birth_year") != null ? rs.getInt("birth_year") : null);
