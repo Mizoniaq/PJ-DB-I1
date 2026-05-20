@@ -37,9 +37,17 @@ public class WorkshopController {
         instructorColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getInstructor() != null
                         ? cellData.getValue().getInstructor().getName() : "Unknown"));
-        spotsColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-                String.valueOf(cellData.getValue().getMaxParticipants())));
+        spotsColumn.setCellValueFactory(cellData -> {
+            Workshop w = cellData.getValue();
+            int spots = w.getAvailableSpots();
+            String label = spots <= 0 ? "FULL" : spots + " / " + w.getMaxParticipants();
+            return new SimpleStringProperty(label);
+        });
 
+        refreshTable();
+    }
+
+    public void refreshTable() {
         workshopTable.setItems(FXCollections.observableArrayList(workshopService.getAllWorkshops()));
     }
 
@@ -65,6 +73,7 @@ public class WorkshopController {
         }
         try {
             workshopService.bookWorkshop(selected, member);
+            refreshTable();
             bookingStatusLabel.setStyle("-fx-text-fill: green;");
             bookingStatusLabel.setText("Booked \"" + selected.getTitle() + "\" for " + member.getName() + ".");
         } catch (Exception e) {
@@ -89,6 +98,7 @@ public class WorkshopController {
         }
         try {
             workshopService.cancelBooking(selected, member);
+            refreshTable();
             bookingStatusLabel.setStyle("-fx-text-fill: green;");
             bookingStatusLabel.setText("Booking cancelled for \"" + selected.getTitle() + "\" (" + member.getName() + ").");
         } catch (Exception e) {

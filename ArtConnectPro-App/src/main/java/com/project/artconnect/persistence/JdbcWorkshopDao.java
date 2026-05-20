@@ -20,6 +20,7 @@ public class JdbcWorkshopDao implements WorkshopDao {
     public Optional<Workshop> findById(Long id) {
         String sql = "SELECT w.workshop_id, w.title, w.date, w.duration_minutes, "
                 + "w.max_participants, w.price, w.location, w.description, w.level, "
+                + "fn_get_workshop_available_spots(w.workshop_id) AS available_spots, "
                 + "a.artist_id, a.name AS instructor_name, a.bio, a.birth_year, "
                 + "a.contact_email, a.city "
                 + "FROM workshop w "
@@ -46,6 +47,7 @@ public class JdbcWorkshopDao implements WorkshopDao {
     public List<Workshop> findAll() {
         String sql = "SELECT w.workshop_id, w.title, w.date, w.duration_minutes, "
                 + "w.max_participants, w.price, w.location, w.description, w.level, "
+                + "fn_get_workshop_available_spots(w.workshop_id) AS available_spots, "
                 + "a.artist_id, a.name AS instructor_name, a.bio, a.birth_year, "
                 + "a.contact_email, a.city "
                 + "FROM workshop w "
@@ -189,6 +191,7 @@ public class JdbcWorkshopDao implements WorkshopDao {
         instructor.setCity(rs.getString("city"));
 
         Workshop w = new Workshop();
+        w.setWorkshopId(rs.getInt("workshop_id"));
         w.setTitle(rs.getString("title"));
         Timestamp ts = rs.getTimestamp("date");
         if (ts != null) {
@@ -196,6 +199,7 @@ public class JdbcWorkshopDao implements WorkshopDao {
         }
         w.setDurationMinutes(rs.getInt("duration_minutes"));
         w.setMaxParticipants(rs.getInt("max_participants"));
+        w.setAvailableSpots(rs.getInt("available_spots"));
         w.setPrice(rs.getDouble("price"));
         w.setLocation(rs.getString("location"));
         w.setDescription(rs.getString("description"));
